@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hinova DW Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --bg: #080b10;
+      --surface: #0d1117;
+      --card: #111720;
+      --card2: #141c28;
+      --border: #1e2d3d;
+      --border2: #243448;
+      --accent: #00d4ff;
+      --green: #00ff9d;
+      --yellow: #ffd666;
+      --red: #ff4d6a;
+      --purple: #a78bfa;
+      --text: #e2e8f0;
+      --text2: #8fa4bf;
+      --text3: #4a6280;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(rgba(0,212,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes pulse-dot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.8); } }
+    @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+    @keyframes slide-in { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 64px;
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .sidebar-brand {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      writing-mode: vertical-rl;
+      color: var(--accent);
+      margin-top: 20px;
+      margin-bottom: 24px;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .sidebar-nav a {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text3);
+      background: transparent;
+      border: 1px solid transparent;
+      font-size: 18px;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .sidebar-nav a:hover,
+    .sidebar-nav a.active {
+      background: rgba(0,212,255,0.1);
+      border: 1px solid rgba(0,212,255,0.3);
+      color: var(--accent);
+      box-shadow: 0 0 20px rgba(0,212,255,0.15);
+    }
+
+    .sidebar-status {
+      margin-bottom: 20px;
+    }
+
+    .sidebar-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse-dot 2s infinite;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      margin-left: 64px;
+      background: rgba(8,11,16,0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar-left {}
+
+    .topbar-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text2);
+    }
+
+    .topbar-breadcrumb {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-connected,
+    .badge-disconnected {
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-connected {
+      background: rgba(0,255,157,0.08);
+      border: 1px solid rgba(0,255,157,0.25);
+      color: var(--green);
+    }
+
+    .badge-disconnected {
+      background: rgba(255,77,106,0.08);
+      border: 1px solid rgba(255,77,106,0.25);
+      color: var(--red);
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .badge-connected .badge-dot {
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse-dot 2s infinite;
+    }
+
+    .badge-disconnected .badge-dot {
+      background: var(--red);
+      box-shadow: 0 0 6px var(--red);
+    }
+
+    .btn-refresh {
+      background: rgba(0,212,255,0.08);
+      border: 1px solid rgba(0,212,255,0.2);
+      color: var(--accent);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-refresh:hover {
+      background: rgba(0,212,255,0.15);
+      border-color: rgba(0,212,255,0.4);
+    }
+
+    .topbar-clock {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text3);
+    }
+
+    /* ── Main Content ── */
+    .main {
+      margin-left: 64px;
+      padding: 24px 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      margin-top: 32px;
+    }
+
+    .section-header:first-child {
+      margin-top: 0;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--border), transparent);
+    }
+
+    /* ── KPI Cards ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      opacity: 0.7;
+    }
+
+    .kpi-card.accent::before { background: var(--accent); }
+    .kpi-card.green::before { background: var(--green); }
+    .kpi-card.red::before { background: var(--red); }
+    .kpi-card.purple::before { background: var(--purple); }
+    .kpi-card.yellow::before { background: var(--yellow); }
+
+    .kpi-icon {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      font-size: 18px;
+      opacity: 0.2;
+    }
+
+    .kpi-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text3);
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    /* ── Card Wrapper ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .card-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-header-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text2);
+    }
+
+    .card-header-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(0,212,255,0.08);
+      border: 1px solid rgba(0,212,255,0.2);
+      color: var(--accent);
+    }
+
+    /* ── ETL Table ── */
+    .etl-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .etl-table th {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text3);
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .etl-table td {
+      padding: 10px 16px;
+      font-size: 12px;
+      border-bottom: 1px solid rgba(30,45,61,0.5);
+    }
+
+    .etl-table tr:hover td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .etl-table .col-pipeline {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .etl-table .col-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    .etl-table .col-rows {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+    }
+
+    .etl-table .col-msg {
+      font-size: 12px;
+      color: var(--text2);
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ── Tags ── */
+    .tag {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      border: 1px solid;
+      display: inline-block;
+    }
+
+    .tag.success { color: var(--green); background: rgba(0,255,157,0.08); border-color: rgba(0,255,157,0.2); }
+    .tag.error { color: var(--red); background: rgba(255,77,106,0.08); border-color: rgba(255,77,106,0.2); }
+    .tag.running { color: var(--accent); background: rgba(0,212,255,0.08); border-color: rgba(0,212,255,0.2); animation: blink 1.5s infinite; }
+    .tag.warn { color: var(--yellow); background: rgba(255,214,102,0.08); border-color: rgba(255,214,102,0.2); }
+    .tag.skipped { color: var(--text3); background: rgba(74,98,128,0.08); border-color: rgba(74,98,128,0.2); }
+    .tag.pending { color: var(--yellow); background: rgba(255,214,102,0.08); border-color: rgba(255,214,102,0.2); }
+
+    /* ── Alerts + Chart Row ── */
+    .alerts-charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .alerts-list {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    .alert-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+      animation: slide-in 0.3s ease;
+    }
+
+    .alert-item.error {
+      background: rgba(255,77,106,0.06);
+      border-color: rgba(255,77,106,0.2);
+    }
+
+    .alert-item.warning {
+      background: rgba(255,214,102,0.06);
+      border-color: rgba(255,214,102,0.2);
+    }
+
+    .alert-item.info {
+      background: rgba(0,212,255,0.06);
+      border-color: rgba(0,212,255,0.15);
+    }
+
+    .alert-icon {
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .alert-icon.error { color: var(--red); }
+    .alert-icon.warning { color: var(--yellow); }
+    .alert-icon.info { color: var(--accent); }
+
+    .alert-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .alert-message {
+      font-size: 12px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .alert-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text3);
+    }
+
+    .alerts-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text3);
+      font-size: 13px;
+    }
+
+    .chart-container {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 280px;
+    }
+
+    /* ── Registros Chart ── */
+    .registros-chart-container {
+      padding: 16px;
+      min-height: 200px;
+      position: relative;
+    }
+
+    .registros-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      color: var(--text3);
+      font-size: 13px;
+    }
+
+    /* ── VPS Section ── */
+    .vps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr) 2fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .gauge-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gauge-fill {
+      transition: stroke-dashoffset 1s ease;
+    }
+
+    .uptime-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: rgba(0,255,157,0.05);
+      border: 1px solid rgba(0,255,157,0.15);
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+    .uptime-bar .uptime-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text3);
+    }
+    .uptime-bar .uptime-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--green);
+    }
+
+    /* ── Processes Table ── */
+    .proc-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .proc-table th {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text3);
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .proc-table td {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 8px 16px;
+      border-bottom: 1px solid rgba(30,45,61,0.5);
+    }
+
+    .proc-table tr:hover td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    /* ── DB Health Cards ── */
+    .db-health-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .db-health-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .db-health-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text3);
+      margin-bottom: 8px;
+    }
+
+    .db-health-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ── DB Tables ── */
+    .db-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .db-table th {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text3);
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .db-table td {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 8px 16px;
+      border-bottom: 1px solid rgba(30,45,61,0.5);
+    }
+
+    .db-table tr:hover td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .schema-badge {
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .schema-badge.public {
+      background: rgba(0,212,255,0.1);
+      color: var(--accent);
+    }
+
+    .schema-badge.other {
+      background: rgba(167,139,250,0.1);
+      color: var(--purple);
+    }
+
+    .col-size {
+      color: var(--accent);
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin-left: 64px;
+      border-top: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text3);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+    /* ── Trigger Tab ── */
+    .tab-content { }
+    .trigger-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .pipeline-trigger-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .pipeline-trigger-card:hover { border-color: var(--border2); }
+    .pipeline-trigger-card.running {
+      border-color: rgba(0,212,255,0.4);
+      box-shadow: 0 0 20px rgba(0,212,255,0.08);
+    }
+    .trigger-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .trigger-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text3);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .trigger-btn {
+      margin-top: 6px;
+      padding: 8px 0;
+      border-radius: 8px;
+      border: 1px solid rgba(0,212,255,0.3);
+      background: rgba(0,212,255,0.08);
+      color: var(--accent);
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+    .trigger-btn:hover:not(:disabled) {
+      background: rgba(0,212,255,0.15);
+      box-shadow: 0 0 16px rgba(0,212,255,0.2);
+    }
+    .trigger-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: var(--border);
+      color: var(--text3);
+    }
+    .trigger-btn.running {
+      background: rgba(255,214,102,0.08);
+      border-color: rgba(255,214,102,0.3);
+      color: var(--yellow);
+      animation: blink 1.5s infinite;
+    }
+    .trigger-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .trigger-modal {
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 28px;
+      max-width: 420px;
+      width: 90%;
+    }
+    .exec-monitor-body {
+      padding: 18px;
+    }
+    .exec-progress {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .exec-progress-bar {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    .exec-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    .exec-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text3);
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 768px) {
+      .trigger-grid { grid-template-columns: 1fr; }
+      .exec-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1200px) {
+      .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+      .vps-grid { grid-template-columns: repeat(2, 1fr); }
+      .db-health-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .topbar { margin-left: 0; }
+      .main { margin-left: 0; padding: 16px; }
+      .footer { margin-left: 0; flex-direction: column; gap: 4px; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .alerts-charts-row { grid-template-columns: 1fr; }
+      .vps-grid { grid-template-columns: 1fr; }
+      .db-health-grid { grid-template-columns: repeat(2, 1fr); }
+      .topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .topbar-right { flex-wrap: wrap; }
+    }
+
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+      .db-health-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">HINOVA</div>
+    <div class="sidebar-nav">
+      <a href="#section-kpis" class="active" title="Visão Geral">⬡</a>
+      <a href="#section-etl" title="Pipelines ETL">⟳</a>
+      <a href="#section-alerts" title="Alertas">◫</a>
+      <a href="#section-vps" title="VPS">◈</a>
+      <a href="#section-db" title="Banco de Dados">◉</a>
+      <a href="javascript:void(0)" onclick="switchTab('execucoes')" data-tab="execucoes" title="Execuções">▶</a>
+    </div>
+    <div class="sidebar-status">
+      <div class="sidebar-dot"></div>
+    </div>
+  </nav>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">Command Center</div>
+      <div class="topbar-breadcrumb">hinova_dw · Hostinger VPS · Docker Swarm</div>
+    </div>
+    <div class="topbar-right">
+      <span class="badge-connected" id="badge-online"><span class="badge-dot"></span> Conectado</span>
+      <span class="badge-disconnected" id="badge-offline" style="display:none"><span class="badge-dot"></span> Desconectado</span>
+      <button class="btn-refresh" onclick="fetchAll()">↻ Atualizar</button>
+      <span class="topbar-clock" id="clock">00:00:00</span>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <div id="tab-dashboard" class="tab-content">
+    <!-- KPIs -->
+    <div id="section-kpis">
+      <div class="section-header">
+        <span class="section-title">Visão Geral</span>
+        <div class="section-line"></div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card accent">
+          <div class="kpi-icon">⬡</div>
+          <div class="kpi-label">Total Pipelines</div>
+          <div class="kpi-value" id="kpi-total" style="color:var(--accent)">—</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-icon">✓</div>
+          <div class="kpi-label">Pipelines OK</div>
+          <div class="kpi-value" id="kpi-success" style="color:var(--green)">—</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-icon">✕</div>
+          <div class="kpi-label">Com Erro</div>
+          <div class="kpi-value" id="kpi-error" style="color:var(--red)">—</div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-icon">%</div>
+          <div class="kpi-label">Taxa de Sucesso</div>
+          <div class="kpi-value" id="kpi-rate" style="color:var(--purple)">—</div>
+        </div>
+        <div class="kpi-card yellow">
+          <div class="kpi-icon">◈</div>
+          <div class="kpi-label">CPU VPS</div>
+          <div class="kpi-value" id="kpi-cpu" style="color:var(--yellow)">—</div>
+        </div>
+        <div class="kpi-card green" id="kpi-disk-card">
+          <div class="kpi-icon">◉</div>
+          <div class="kpi-label">Uso de Disco</div>
+          <div class="kpi-value" id="kpi-disk" style="color:var(--green)">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ETL Table -->
+    <div id="section-etl">
+      <div class="section-header">
+        <span class="section-title">Pipelines ETL</span>
+        <div class="section-line"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-header-title">Pipelines ETL</span>
+          <span class="card-header-badge">ingest_control</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="etl-table">
+            <thead>
+              <tr>
+                <th>Pipeline</th>
+                <th>Status</th>
+                <th>Última Execução</th>
+                <th>Registros</th>
+                <th>Mensagem</th>
+              </tr>
+            </thead>
+            <tbody id="etl-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts + Donut -->
+    <div id="section-alerts">
+      <div class="section-header">
+        <span class="section-title">Alertas & Status</span>
+        <div class="section-line"></div>
+      </div>
+      <div class="alerts-charts-row">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-header-title">Alertas Ativos</span>
+            <span class="card-header-badge" id="alerts-count">0</span>
+          </div>
+          <div class="alerts-list" id="alerts-list">
+            <div class="alerts-empty">Nenhum alerta ativo ✓</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-header-title">Status Atual dos Pipelines</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="statusChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Registros Chart -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title">Registros por Pipeline</span>
+      </div>
+      <div class="registros-chart-container" id="registros-container">
+        <canvas id="registrosChart"></canvas>
+      </div>
+    </div>
+
+    <!-- VPS -->
+    <div id="section-vps">
+      <div class="section-header">
+        <span class="section-title">VPS</span>
+        <div class="section-line"></div>
+      </div>
+      <div class="vps-grid">
+        <!-- CPU Gauge -->
+        <div class="gauge-card">
+          <svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)">
+            <circle cx="60" cy="60" r="48" fill="none" stroke="var(--border2)" stroke-width="8"/>
+            <circle cx="60" cy="60" r="48" fill="none" stroke="#ffd666" stroke-width="8" stroke-linecap="round" stroke-dasharray="301.6" stroke-dashoffset="301.6" class="gauge-fill" id="gauge-cpu-fill"/>
+            <text transform="rotate(90,60,60)" x="60" y="56" text-anchor="middle" fill="#ffd666" font-family="JetBrains Mono" font-size="18" font-weight="700" id="gauge-cpu-text">0%</text>
+            <text transform="rotate(90,60,60)" x="60" y="72" text-anchor="middle" fill="#4a6280" font-family="Syne" font-size="10">CPU</text>
+          </svg>
+        </div>
+        <!-- RAM Gauge -->
+        <div class="gauge-card">
+          <svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)">
+            <circle cx="60" cy="60" r="48" fill="none" stroke="var(--border2)" stroke-width="8"/>
+            <circle cx="60" cy="60" r="48" fill="none" stroke="#00d4ff" stroke-width="8" stroke-linecap="round" stroke-dasharray="301.6" stroke-dashoffset="301.6" class="gauge-fill" id="gauge-ram-fill"/>
+            <text transform="rotate(90,60,60)" x="60" y="56" text-anchor="middle" fill="#00d4ff" font-family="JetBrains Mono" font-size="18" font-weight="700" id="gauge-ram-text">0%</text>
+            <text transform="rotate(90,60,60)" x="60" y="72" text-anchor="middle" fill="#4a6280" font-family="Syne" font-size="10">RAM</text>
+          </svg>
+        </div>
+        <!-- Disco Gauge -->
+        <div class="gauge-card">
+          <svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)">
+            <circle cx="60" cy="60" r="48" fill="none" stroke="var(--border2)" stroke-width="8"/>
+            <circle cx="60" cy="60" r="48" fill="none" stroke="#00ff9d" stroke-width="8" stroke-linecap="round" stroke-dasharray="301.6" stroke-dashoffset="301.6" class="gauge-fill" id="gauge-disk-fill"/>
+            <text transform="rotate(90,60,60)" x="60" y="56" text-anchor="middle" fill="#00ff9d" font-family="JetBrains Mono" font-size="18" font-weight="700" id="gauge-disk-text">0%</text>
+            <text transform="rotate(90,60,60)" x="60" y="72" text-anchor="middle" fill="#4a6280" font-family="Syne" font-size="10">DISCO</text>
+          </svg>
+        </div>
+        <!-- Processes -->
+        <div class="card" style="margin-bottom:0">
+          <div class="card-header">
+            <span class="card-header-title">Top 5 Processos</span>
+          </div>
+          <table class="proc-table">
+            <thead>
+              <tr>
+                <th>Processo</th>
+                <th>CPU %</th>
+                <th>MEM %</th>
+              </tr>
+            </thead>
+            <tbody id="proc-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="uptime-bar">
+        <span class="uptime-label">⬆ UPTIME</span>
+        <span class="uptime-value" id="uptime-value">—</span>
+      </div>
+    </div>
+
+    <!-- Database -->
+    <div id="section-db">
+      <div class="section-header">
+        <span class="section-title">Banco de Dados</span>
+        <div class="section-line"></div>
+      </div>
+      <div class="db-health-grid">
+        <div class="db-health-card">
+          <div class="db-health-label">Conexões Ativas</div>
+          <div class="db-health-value" id="db-connections">—</div>
+        </div>
+        <div class="db-health-card">
+          <div class="db-health-label">Cache Hit Ratio</div>
+          <div class="db-health-value" id="db-cache">—</div>
+        </div>
+        <div class="db-health-card">
+          <div class="db-health-label">Tamanho DB</div>
+          <div class="db-health-value" id="db-size">—</div>
+        </div>
+        <div class="db-health-card">
+          <div class="db-health-label">Query Mais Longa</div>
+          <div class="db-health-value" id="db-longest">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-header-title">15 Maiores Tabelas</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="db-table">
+            <thead>
+              <tr>
+                <th>Schema</th>
+                <th>Tabela</th>
+                <th>Linhas Est.</th>
+                <th>Tamanho</th>
+              </tr>
+            </thead>
+            <tbody id="db-tables-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <div id="tab-execucoes" class="tab-content" style="display:none">
+      <div class="section-header">
+        <span class="section-title">Disparo Manual</span>
+        <div class="section-line"></div>
+      </div>
+      <div class="trigger-grid" id="trigger-cards-grid"></div>
+
+      <div class="section-header">
+        <span class="section-title">Monitor de Execução</span>
+        <div class="section-line"></div>
+      </div>
+      <div class="card" id="execution-monitor" style="display:none">
+        <div class="card-header" style="justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="card-header-title">⟳ <span id="exec-pipeline-name">—</span></span>
+          </div>
+          <span id="exec-elapsed" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)">0s</span>
+        </div>
+        <div class="exec-monitor-body">
+          <div class="exec-progress"><div class="exec-progress-bar" id="exec-progress-bar"></div></div>
+          <div class="exec-grid">
+            <div>
+              <div class="exec-label">Status</div>
+              <span id="exec-status" class="tag running">running</span>
+            </div>
+            <div>
+              <div class="exec-label">Registros</div>
+              <div id="exec-rows" style="font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--accent)">—</div>
+            </div>
+            <div>
+              <div class="exec-label">Service</div>
+              <div id="exec-service" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)">—</div>
+            </div>
+          </div>
+          <div style="margin-top:14px">
+            <div class="exec-label">Mensagem</div>
+            <div id="exec-message" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);min-height:20px">—</div>
+          </div>
+        </div>
+      </div>
+      <div id="exec-empty" style="text-align:center;padding:40px;color:var(--text3);font-size:13px">
+        Nenhuma execução ativa
+      </div>
+    </div>
+
+    <!-- Trigger Modal -->
+    <div class="trigger-modal-overlay" id="trigger-modal">
+      <div class="trigger-modal">
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">Confirmar Disparo</div>
+        <div id="modal-pipeline-name" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);margin-bottom:16px"></div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:24px">O ETL será executado imediatamente. O status aparecerá no Monitor de Execução.</div>
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button onclick="closeModal()" style="padding:8px 18px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:'Syne',sans-serif;font-size:12px">Cancelar</button>
+          <button id="modal-confirm-btn" style="padding:8px 18px;border-radius:8px;border:1px solid rgba(0,212,255,0.3);background:rgba(0,212,255,0.1);color:var(--accent);cursor:pointer;font-family:'Syne',sans-serif;font-size:12px;font-weight:700">▶ Disparar</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span>Hinova DW Monitor v1.0 · hinova_dw @ Hostinger VPS · Docker Swarm</span>
+    <span>Timezone: America/Fortaleza · Atualização automática a cada 30s</span>
+  </footer>
+
+  <script>
+    const API_BASE = window.location.origin;
+    let statusChart = null;
+    let registrosChart = null;
+
+    // Chart.js defaults
+    Chart.defaults.color = '#4a6280';
+    Chart.defaults.borderColor = '#1e2d3d';
+    Chart.defaults.font.family = "'JetBrains Mono', monospace";
+    Chart.defaults.font.size = 10;
+
+    // Clock
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    }, 1000);
+
+    // Sidebar active state
+    document.querySelectorAll('.sidebar-nav a').forEach(link => {
+      link.addEventListener('click', function() {
+        document.querySelectorAll('.sidebar-nav a').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Format date as dd/mm HH:MM
+    function fmtDate(iso) {
+      if (!iso) return '\u2014';
+      const d = new Date(iso);
+      return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+
+    function fmtNumber(n) {
+      if (n == null) return '\u2014';
+      return Number(n).toLocaleString('pt-BR');
+    }
+
+    function truncateMsg(msg, max = 60) {
+      if (!msg) return '\u2014';
+      return msg.length > max ? msg.slice(0, max) + '\u2026' : msg;
+    }
+
+    function updateGauge(fillId, textId, percent, color) {
+      const c = 301.6, offset = c * (1 - percent / 100);
+      document.getElementById(fillId).setAttribute('stroke-dashoffset', offset);
+      document.getElementById(textId).textContent = percent + '%';
+    }
+
+    // ── Update Functions ──
+
+    function updateKPIs(summary, vps) {
+      document.getElementById('kpi-total').textContent = summary.total != null ? summary.total : '\u2014';
+      document.getElementById('kpi-success').textContent = summary.success != null ? summary.success : '\u2014';
+      document.getElementById('kpi-error').textContent = summary.error != null ? summary.error : '\u2014';
+      document.getElementById('kpi-rate').textContent = summary.success_rate != null ? summary.success_rate + '%' : '\u2014';
+
+      const cpu = vps.cpu_percent;
+      const cpuEl = document.getElementById('kpi-cpu');
+      cpuEl.textContent = cpu != null ? cpu + '%' : '\u2014';
+      if (cpu != null && cpu > 65) {
+        cpuEl.style.color = 'var(--yellow)';
+      } else {
+        cpuEl.style.color = 'var(--yellow)';
+      }
+
+      const diskPct = vps.disk ? vps.disk.percent : null;
+      const diskEl = document.getElementById('kpi-disk');
+      const diskCard = document.getElementById('kpi-disk-card');
+      diskEl.textContent = diskPct != null ? diskPct + '%' : '\u2014';
+      if (diskPct != null && diskPct > 80) {
+        diskEl.style.color = 'var(--red)';
+        diskCard.className = 'kpi-card red';
+      } else {
+        diskEl.style.color = 'var(--green)';
+        diskCard.className = 'kpi-card green';
+      }
+    }
+
+    function updateETLTable(data) {
+      const tbody = document.getElementById('etl-tbody');
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:20px">Nenhum pipeline encontrado</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(row => {
+        const status = row.status || 'pending';
+        const tagClass = status === 'success' ? 'success' : status === 'error' ? 'error' : status === 'running' ? 'running' : status === 'skipped' ? 'skipped' : status === 'warn' ? 'warn' : 'pending';
+        return `<tr>
+          <td class="col-pipeline">${row.pipeline_name || '\u2014'}</td>
+          <td><span class="tag ${tagClass}">${status}</span></td>
+          <td class="col-time">${fmtDate(row.last_run)}</td>
+          <td class="col-rows">${fmtNumber(row.rows_loaded)}</td>
+          <td class="col-msg" title="${row.error_message || ''}">${truncateMsg(row.error_message)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function updateAlerts(alerts, total) {
+      const list = document.getElementById('alerts-list');
+      const countBadge = document.getElementById('alerts-count');
+      countBadge.textContent = total || 0;
+
+      if (!alerts || alerts.length === 0) {
+        list.innerHTML = '<div class="alerts-empty">Nenhum alerta ativo \u2713</div>';
+        return;
+      }
+
+      list.innerHTML = alerts.map(a => {
+        const sev = a.severity || 'info';
+        const icon = sev === 'error' ? '\u2715' : sev === 'warning' ? '\u26A0' : '\u2139';
+        return `<div class="alert-item ${sev}">
+          <span class="alert-icon ${sev}">${icon}</span>
+          <div class="alert-content">
+            <div class="alert-message">${a.message || '\u2014'}</div>
+            <div class="alert-time">${fmtDate(a.detected_at)}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function updateStatusChart(summary) {
+      const ctx = document.getElementById('statusChart').getContext('2d');
+      const chartData = [
+        summary.success || 0,
+        summary.error || 0,
+        summary.running || 0
+      ];
+
+      if (statusChart) {
+        statusChart.data.datasets[0].data = chartData;
+        statusChart.update('none');
+        return;
+      }
+
+      statusChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Sucesso', 'Erro', 'Executando'],
+          datasets: [{
+            data: chartData,
+            backgroundColor: ['rgba(0,255,157,0.75)', 'rgba(255,77,106,0.75)', 'rgba(255,214,102,0.75)'],
+            borderColor: ['#00ff9d', '#ff4d6a', '#ffd666'],
+            borderWidth: 2,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          cutout: '70%',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: '#8fa4bf',
+                font: { size: 11, family: "'Syne', sans-serif" },
+                boxWidth: 10,
+                padding: 16
+              }
+            }
+          }
+        },
+        plugins: [{
+          id: 'centerText',
+          beforeDraw(chart) {
+            const { ctx, chartArea: { top, bottom, left, right } } = chart;
+            const centerX = (left + right) / 2;
+            const centerY = (top + bottom) / 2;
+            const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+            ctx.save();
+            ctx.font = "bold 28px 'JetBrains Mono', monospace";
+            ctx.fillStyle = '#e2e8f0';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(total, centerX, centerY - 8);
+            ctx.font = "11px 'Syne', sans-serif";
+            ctx.fillStyle = '#4a6280';
+            ctx.fillText('pipelines', centerX, centerY + 14);
+            ctx.restore();
+          }
+        }]
+      });
+    }
+
+    function updateRegistrosChart(data) {
+      const container = document.getElementById('registros-container');
+      const filtered = (data || []).filter(d => d.rows_loaded != null);
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="registros-empty">Sem dados de registros dispon\u00edveis</div>';
+        return;
+      }
+
+      // Ensure canvas exists
+      if (!document.getElementById('registrosChart')) {
+        container.innerHTML = '<canvas id="registrosChart"></canvas>';
+      }
+
+      const ctx = document.getElementById('registrosChart').getContext('2d');
+      const labels = filtered.map(d => d.pipeline_name);
+      const values = filtered.map(d => d.rows_loaded);
+      const colors = filtered.map(d => {
+        const s = d.status;
+        if (s === 'success') return 'rgba(0,255,157,0.7)';
+        if (s === 'error') return 'rgba(255,77,106,0.7)';
+        if (s === 'warn') return 'rgba(255,214,102,0.7)';
+        return 'rgba(0,212,255,0.5)';
+      });
+
+      if (registrosChart) {
+        registrosChart.data.labels = labels;
+        registrosChart.data.datasets[0].data = values;
+        registrosChart.data.datasets[0].backgroundColor = colors;
+        registrosChart.update('none');
+        return;
+      }
+
+      registrosChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Registros',
+            data: values,
+            backgroundColor: colors,
+            borderRadius: 4,
+            barThickness: 18
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true, intersect: true }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(30,45,61,0.5)' },
+              ticks: { color: '#4a6280', font: { family: "'JetBrains Mono', monospace", size: 10 } }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { color: '#8fa4bf', font: { family: "'JetBrains Mono', monospace", size: 10 } }
+            }
+          }
+        }
+      });
+
+      // Set canvas container height based on items
+      container.style.height = Math.max(200, filtered.length * 32 + 60) + 'px';
+    }
+
+    function updateGauges(vps) {
+      const cpuPct = vps.cpu_percent != null ? Math.round(vps.cpu_percent) : 0;
+      const ramPct = vps.memory ? Math.round(vps.memory.percent) : 0;
+      const diskPct = vps.disk ? Math.round(vps.disk.percent) : 0;
+
+      updateGauge('gauge-cpu-fill', 'gauge-cpu-text', cpuPct, '#ffd666');
+      updateGauge('gauge-ram-fill', 'gauge-ram-text', ramPct, '#00d4ff');
+      updateGauge('gauge-disk-fill', 'gauge-disk-text', diskPct, '#00ff9d');
+
+      document.getElementById('uptime-value').textContent = vps.uptime_formatted || '\u2014';
+    }
+
+    function updateProcesses(procs) {
+      const tbody = document.getElementById('proc-tbody');
+      if (!procs || procs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:16px">Sem dados</td></tr>';
+        return;
+      }
+      const top5 = procs.slice(0, 5);
+      tbody.innerHTML = top5.map(p => `<tr>
+        <td>${p.name || '\u2014'}</td>
+        <td>${p.cpu_percent != null ? p.cpu_percent.toFixed(1) : '\u2014'}</td>
+        <td>${p.memory_percent != null ? p.memory_percent.toFixed(1) : '\u2014'}</td>
+      </tr>`).join('');
+    }
+
+    function updateDBHealth(data) {
+      if (!data) {
+        document.getElementById('db-connections').textContent = '\u2014';
+        document.getElementById('db-cache').textContent = '\u2014';
+        document.getElementById('db-size').textContent = '\u2014';
+        document.getElementById('db-longest').textContent = '\u2014';
+        return;
+      }
+      document.getElementById('db-connections').textContent = data.total_connections != null ? data.total_connections : '\u2014';
+      document.getElementById('db-cache').textContent = data.cache_hit_ratio != null ? data.cache_hit_ratio + '%' : '\u2014';
+      document.getElementById('db-size').textContent = data.db_size_pretty || '\u2014';
+      document.getElementById('db-longest').textContent = data.longest_query_seconds != null ? data.longest_query_seconds + 's' : '\u2014';
+    }
+
+    function updateDBTables(tables) {
+      const tbody = document.getElementById('db-tables-tbody');
+      if (!tables || tables.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:16px">Sem dados</td></tr>';
+        return;
+      }
+      const top15 = tables.sort((a, b) => (b.size_bytes || 0) - (a.size_bytes || 0)).slice(0, 15);
+      tbody.innerHTML = top15.map(t => {
+        const schemaClass = t.schema_name === 'public' ? 'public' : 'other';
+        return `<tr>
+          <td><span class="schema-badge ${schemaClass}">${t.schema_name || '\u2014'}</span></td>
+          <td>${t.table_name || '\u2014'}</td>
+          <td>${fmtNumber(t.rows_estimate)}</td>
+          <td class="col-size">${t.size_pretty || '\u2014'}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // ── Fetch All ──
+
+    async function fetchAll() {
+      try {
+        const [etlRes, vpsRes, tablesRes, healthRes, alertsRes] = await Promise.all([
+          fetch(`${API_BASE}/api/etls`).then(r => r.json()),
+          fetch(`${API_BASE}/api/vps`).then(r => r.json()),
+          fetch(`${API_BASE}/api/db/tables`).then(r => r.json()),
+          fetch(`${API_BASE}/api/db/health`).then(r => r.json()),
+          fetch(`${API_BASE}/api/alerts`).then(r => r.json()),
+        ]);
+
+        document.getElementById('badge-online').style.display = '';
+        document.getElementById('badge-offline').style.display = 'none';
+
+        updateKPIs(etlRes.summary, vpsRes);
+        updateETLTable(etlRes.data);
+        updateAlerts(alertsRes.alerts, alertsRes.total);
+        updateStatusChart(etlRes.summary);
+        updateRegistrosChart(etlRes.data);
+        updateGauges(vpsRes);
+        updateProcesses(vpsRes.top_processes);
+        updateDBHealth(healthRes.data);
+        updateDBTables(tablesRes.tables);
+      } catch (e) {
+        console.error('Fetch failed:', e);
+        document.getElementById('badge-online').style.display = 'none';
+        document.getElementById('badge-offline').style.display = '';
+      }
+    }
+
+    // ── Trigger Tab ──────────────────────────────────────────
+    const TRIGGERABLE_PIPELINES = [
+      "ETL PowerCRM Cotacoes",
+      "ETL Rel Veiculos Ativos",
+      "ETL Rel Alteracao Situacao",
+      "ETL Boletos Janela",
+      "ETL Boletos Mês Atual",
+      "ETL Boletos Python",
+      "ETL Veiculos Python",
+      "ETL Alteracao Situacao Veiculo API",
+      "ETL Alteracao Situacao Veiculo",
+    ];
+
+    let currentTab = 'dashboard';
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      const tab = document.getElementById('tab-' + tabName);
+      if (tab) tab.style.display = 'block';
+      currentTab = tabName;
+
+      // Update sidebar active
+      document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+      const navEl = document.querySelector('[data-tab="' + tabName + '"]');
+      if (navEl) navEl.classList.add('active');
+      else document.querySelector('.sidebar-nav a').classList.add('active');
+
+      if (tabName === 'execucoes') loadTriggerTab();
+    }
+
+    // Override sidebar links for dashboard tab
+    document.querySelectorAll('.sidebar-nav a[href^="#"]').forEach(link => {
+      link.setAttribute('data-tab', 'dashboard');
+      link.addEventListener('click', function(e) {
+        if (currentTab !== 'dashboard') {
+          e.preventDefault();
+          switchTab('dashboard');
+          setTimeout(() => {
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth' });
+          }, 50);
+        }
+      });
+    });
+
+    async function loadTriggerTab() {
+      try {
+        const res = await fetch(API_BASE + '/api/trigger/history');
+        const json = await res.json();
+        renderTriggerCards(json.data);
+      } catch (e) {
+        console.error('Erro ao carregar histórico ETL:', e);
+      }
+    }
+
+    function renderTriggerCards(history) {
+      const container = document.getElementById('trigger-cards-grid');
+      container.innerHTML = '';
+      TRIGGERABLE_PIPELINES.forEach(name => {
+        const p = (history || []).find(h => h.pipeline === name) || {};
+        const isRunning = p.status === 'running';
+        const statusClass = p.status || 'pending';
+        const lastRun = p.last_run ? fmtDate(p.last_run) : '\u2014';
+        const rows = p.rows_loaded != null ? fmtNumber(p.rows_loaded) : '\u2014';
+
+        container.innerHTML += '<div class="pipeline-trigger-card ' + (isRunning ? 'running' : '') + '">' +
+          '<div class="trigger-name">' + name + '</div>' +
+          '<div class="trigger-meta">' +
+            '<span>\u23F1 ' + lastRun + '</span>' +
+            '<span>\u25C8 ' + rows + ' registros</span>' +
+          '</div>' +
+          '<span class="tag ' + statusClass + '">' + statusClass + '</span>' +
+          '<button class="trigger-btn ' + (isRunning ? 'running' : '') + '"' +
+            ' onclick="openModal(\'' + name.replace(/'/g, "\\'") + '\')"' +
+            (isRunning ? ' disabled' : '') + '>' +
+            (isRunning ? '\u27F3 Executando...' : '\u25B6 Disparar') +
+          '</button>' +
+        '</div>';
+      });
+    }
+
+    let pendingPipeline = null;
+
+    function openModal(pipelineName) {
+      pendingPipeline = pipelineName;
+      document.getElementById('modal-pipeline-name').textContent = pipelineName;
+      document.getElementById('trigger-modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('trigger-modal').style.display = 'none';
+      pendingPipeline = null;
+    }
+
+    document.getElementById('modal-confirm-btn').addEventListener('click', async function() {
+      if (!pendingPipeline) return;
+      const name = pendingPipeline;
+      closeModal();
+      await dispararETL(name);
+    });
+
+    async function dispararETL(pipelineName) {
+      const encoded = encodeURIComponent(pipelineName);
+      try {
+        const res = await fetch(API_BASE + '/api/trigger/' + encoded, { method: 'POST' });
+        const json = await res.json();
+        if (!res.ok) {
+          alert('Erro ao disparar: ' + (json.detail || 'Erro desconhecido'));
+          return;
+        }
+        iniciarMonitor(pipelineName, json.service);
+      } catch (e) {
+        alert('Erro de conexão: ' + e.message);
+      }
+    }
+
+    let monitorInterval = null;
+    let monitorStartTime = null;
+    let progressAnim = null;
+
+    function iniciarMonitor(pipelineName, serviceName) {
+      const monitor = document.getElementById('execution-monitor');
+      monitor.style.display = 'block';
+      document.getElementById('exec-empty').style.display = 'none';
+      monitor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      document.getElementById('exec-pipeline-name').textContent = pipelineName;
+      document.getElementById('exec-service').textContent = serviceName;
+      document.getElementById('exec-status').className = 'tag running';
+      document.getElementById('exec-status').textContent = 'running';
+      document.getElementById('exec-rows').textContent = '\u2014';
+      document.getElementById('exec-message').textContent = 'Aguardando início...';
+      document.getElementById('exec-progress-bar').style.width = '0%';
+      document.getElementById('exec-progress-bar').style.background = 'var(--accent)';
+
+      monitorStartTime = Date.now();
+
+      if (progressAnim) clearInterval(progressAnim);
+      let pos = 0;
+      progressAnim = setInterval(function() {
+        pos = (pos + 2) % 110;
+        document.getElementById('exec-progress-bar').style.width = Math.min(pos, 95) + '%';
+      }, 100);
+
+      if (monitorInterval) clearInterval(monitorInterval);
+      monitorInterval = setInterval(function() { pollStatus(pipelineName); }, 2000);
+
+      // Update card to running state
+      loadTriggerTab();
+    }
+
+    async function pollStatus(pipelineName) {
+      const encoded = encodeURIComponent(pipelineName);
+      try {
+        const res = await fetch(API_BASE + '/api/trigger/status/' + encoded);
+        const data = await res.json();
+
+        const elapsed = Math.floor((Date.now() - monitorStartTime) / 1000);
+        document.getElementById('exec-elapsed').textContent = elapsed + 's';
+
+        if (data.message) document.getElementById('exec-message').textContent = data.message;
+        if (data.rows_loaded != null) document.getElementById('exec-rows').textContent = fmtNumber(data.rows_loaded);
+
+        const finished = !data.is_running && data.db_status !== 'running';
+        if (finished && elapsed > 5) {
+          const statusEl = document.getElementById('exec-status');
+          statusEl.className = 'tag ' + (data.db_status || 'success');
+          statusEl.textContent = data.db_status || 'done';
+
+          clearInterval(monitorInterval);
+          monitorInterval = null;
+          if (progressAnim) { clearInterval(progressAnim); progressAnim = null; }
+
+          const bar = document.getElementById('exec-progress-bar');
+          bar.style.width = '100%';
+          bar.style.background = data.db_status === 'success' || data.db_status === 'SUCESSO' ? 'var(--green)' : 'var(--red)';
+
+          setTimeout(function() { loadTriggerTab(); }, 1000);
+        }
+      } catch (e) {
+        console.error('Erro no poll de status:', e);
+      }
+    }
+
+    fetchAll();
+    setInterval(fetchAll, 30000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+version: "3.8"
+services:
+  dw-monitor-api:
+    image: hinova-dw-monitor-api:latest
+    environment:
+      - DATABASE_URL=postgresql://postgres:3371db0ea0e4614dcd3352fbf07a86c3@postgres:5432/hinova_dw
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - AlexPaivaDev
+    deploy:
+      restart_policy:
+        condition: any
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.dw_monitor_api.rule=Host(`monitor.alexpaiva.dev`) && (PathPrefix(`/api`) || PathPrefix(`/health`))"
+        - "traefik.http.routers.dw_monitor_api.entrypoints=websecure"
+        - "traefik.http.routers.dw_monitor_api.tls.certresolver=letsencryptresolver"
+        - "traefik.http.routers.dw_monitor_api.priority=10"
+        - "traefik.http.routers.dw_monitor_api.service=dw_monitor_api"
+        - "traefik.http.services.dw_monitor_api.loadbalancer.server.port=8001"
+
+  dw-monitor-web:
+    image: hinova-dw-monitor-web:latest
+    networks:
+      - AlexPaivaDev
+    deploy:
+      restart_policy:
+        condition: any
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.dw_monitor_web.rule=Host(`monitor.alexpaiva.dev`)"
+        - "traefik.http.routers.dw_monitor_web.entrypoints=websecure"
+        - "traefik.http.routers.dw_monitor_web.tls.certresolver=letsencryptresolver"
+        - "traefik.http.routers.dw_monitor_web.priority=1"
+        - "traefik.http.routers.dw_monitor_web.service=dw_monitor_web"
+        - "traefik.http.services.dw_monitor_web.loadbalancer.server.port=80"
+
+networks:
+  AlexPaivaDev:
+    external: true
