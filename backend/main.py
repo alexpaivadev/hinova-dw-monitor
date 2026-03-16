@@ -4,7 +4,7 @@ import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import alerts, db_stats, etl, system, trigger
+from routers import alerts, auth, db_stats, etl, system, trigger, export
 
 logging.basicConfig(
     level=logging.INFO,
@@ -38,11 +38,13 @@ async def log_requests(request: Request, call_next):
     return response
 
 
+app.include_router(auth.router, prefix="/api")
 app.include_router(etl.router, prefix="/api")
 app.include_router(system.router, prefix="/api")
 app.include_router(db_stats.router, prefix="/api")
 app.include_router(alerts.router, prefix="/api")
 app.include_router(trigger.router, prefix="/api")
+app.include_router(export.router, prefix="/api")
 
 
 @app.get("/health")

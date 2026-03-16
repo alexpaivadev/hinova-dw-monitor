@@ -1,5 +1,6 @@
 from datetime import datetime
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from routers.auth import require_viewer
 from database import execute_query
 
 router = APIRouter(prefix="/etls", tags=["ETL"])
@@ -20,7 +21,7 @@ def _normalize_status(raw_status: str) -> str:
 
 
 @router.get("")
-def list_etls():
+def list_etls(token_data: dict = Depends(require_viewer)):
     sql = """
         SELECT workflow, status, ultima_execucao, registros_ok, mensagem
         FROM ingest_control

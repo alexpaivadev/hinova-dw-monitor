@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from routers.auth import require_viewer
 from database import execute_query
 
 router = APIRouter(prefix="/db", tags=["Database"])
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/tables")
-def list_tables():
+def list_tables(token_data: dict = Depends(require_viewer)):
     sql = """
         SELECT
             schemaname AS schema_name,
@@ -25,7 +26,7 @@ def list_tables():
 
 
 @router.get("/health")
-def db_health():
+def db_health(token_data: dict = Depends(require_viewer)):
     result = {
         "total_connections": None,
         "db_size_pretty": None,

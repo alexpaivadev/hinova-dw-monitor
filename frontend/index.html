@@ -845,6 +845,274 @@
       .kpi-grid { grid-template-columns: 1fr; }
       .db-health-grid { grid-template-columns: 1fr; }
     }
+    /* ── EXPORT TAB ─────────────────────────────────────────── */
+    .export-config-panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 24px;
+        max-width: 680px;
+        margin-bottom: 24px;
+    }
+    .export-step-label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--text3);
+        margin-bottom: 8px;
+        margin-top: 16px;
+    }
+    .export-step-label:first-child { margin-top: 0; }
+    .export-select, .export-date-input {
+        background: var(--surface);
+        border: 1px solid var(--border2);
+        border-radius: 8px;
+        color: var(--text);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        padding: 9px 12px;
+        width: 100%;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .export-select:focus, .export-date-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(0,212,255,0.1);
+    }
+    .export-date-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 8px;
+    }
+    .export-date-group label {
+        font-size: 10px;
+        color: var(--text3);
+        font-family: 'Syne', sans-serif;
+        display: block;
+        margin-bottom: 4px;
+    }
+    .export-btn {
+        width: 100%;
+        margin-top: 20px;
+        padding: 12px;
+        border-radius: 10px;
+        background: rgba(0,255,157,0.1);
+        border: 1px solid rgba(0,255,157,0.3);
+        color: var(--green);
+        font-family: 'Syne', sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .export-btn:hover:not(:disabled) {
+        background: rgba(0,255,157,0.18);
+        box-shadow: 0 0 20px rgba(0,255,157,0.15);
+    }
+    .export-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+    .export-btn.loading {
+        background: rgba(0,212,255,0.08);
+        border-color: rgba(0,212,255,0.3);
+        color: var(--accent);
+        animation: blink 1.5s infinite;
+    }
+    .preview-wrap {
+        margin-top: 16px;
+        overflow-x: auto;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        display: none;
+    }
+    .preview-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+    }
+    .preview-table th {
+        background: var(--surface);
+        color: var(--accent);
+        padding: 7px 10px;
+        text-align: left;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+    }
+    .preview-table td {
+        padding: 6px 10px;
+        color: var(--text2);
+        border-bottom: 1px solid rgba(30,45,61,0.4);
+        white-space: nowrap;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .preview-table tr:last-child td { border-bottom: none; }
+    .preview-note {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        color: var(--text3);
+        margin-top: 6px;
+        padding: 0 2px;
+    }
+    .tables-export-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 12px;
+    }
+    .table-export-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        cursor: pointer;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .table-export-card:hover {
+        border-color: rgba(0,212,255,0.3);
+        box-shadow: 0 0 12px rgba(0,212,255,0.08);
+    }
+    .table-export-card.selected {
+        border-color: var(--accent);
+        background: rgba(0,212,255,0.05);
+    }
+    .table-card-name {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .table-card-meta {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        color: var(--text3);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+/* ── Users Tab ──────────────────────────────────────────── */
+.users-table { width: 100%; border-collapse: collapse; }
+.users-table th {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--text3);
+    padding: 8px 14px; text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+.users-table td {
+    padding: 12px 14px; font-size: 12px; color: var(--text2);
+    border-bottom: 1px solid rgba(30,45,61,0.4);
+    vertical-align: middle;
+}
+.users-table tr:last-child td { border-bottom: none; }
+.users-table tr:hover td { background: rgba(255,255,255,0.02); }
+.user-username {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 600; color: var(--text);
+}
+.role-badge {
+    padding: 3px 8px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 600; border: 1px solid;
+    display: inline-block;
+}
+.role-badge.admin   { color: var(--red);    background: rgba(255,77,106,0.08);   border-color: rgba(255,77,106,0.2); }
+.role-badge.analyst { color: var(--yellow); background: rgba(255,214,102,0.08);  border-color: rgba(255,214,102,0.2); }
+.role-badge.viewer  { color: var(--accent); background: rgba(0,212,255,0.08);    border-color: rgba(0,212,255,0.2); }
+.status-active   { color: var(--green); font-size: 11px; }
+.status-inactive { color: var(--text3); font-size: 11px; }
+.user-action-btn {
+    padding: 5px 10px; border-radius: 6px; font-size: 11px;
+    cursor: pointer; border: 1px solid; transition: all 0.2s;
+    font-family: 'Syne', sans-serif; font-weight: 600;
+    background: transparent;
+}
+.user-action-btn.edit { color: var(--accent); border-color: rgba(0,212,255,0.2); }
+.user-action-btn.edit:hover { background: rgba(0,212,255,0.08); }
+.user-action-btn.deactivate { color: var(--red); border-color: rgba(255,77,106,0.2); }
+.user-action-btn.deactivate:hover { background: rgba(255,77,106,0.08); }
+.user-action-btn.reactivate { color: var(--green); border-color: rgba(0,255,157,0.2); }
+.user-action-btn.reactivate:hover { background: rgba(0,255,157,0.08); }
+.user-action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.new-user-btn {
+    padding: 8px 16px; border-radius: 8px;
+    background: rgba(0,255,157,0.08);
+    border: 1px solid rgba(0,255,157,0.25);
+    color: var(--green); font-family: 'Syne', sans-serif;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s;
+}
+.new-user-btn:hover { background: rgba(0,255,157,0.15); box-shadow: 0 0 16px rgba(0,255,157,0.12); }
+.user-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); z-index: 1000;
+    align-items: center; justify-content: center;
+}
+.user-modal-card {
+    background: var(--card); border: 1px solid var(--border2);
+    border-radius: 14px; padding: 28px;
+    width: 90%; max-width: 460px;
+}
+.user-modal-title {
+    font-family: 'Syne', sans-serif; font-size: 16px;
+    font-weight: 700; color: var(--text); margin-bottom: 20px;
+}
+.user-modal-field { margin-bottom: 16px; }
+.user-modal-label {
+    display: block; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text3); margin-bottom: 6px;
+}
+.user-modal-input, .user-modal-select {
+    width: 100%; background: var(--surface);
+    border: 1px solid var(--border2); border-radius: 8px;
+    color: var(--text); font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; padding: 10px 12px; outline: none;
+    transition: border-color 0.2s; box-sizing: border-box;
+}
+.user-modal-input:focus, .user-modal-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0,212,255,0.1);
+}
+.user-modal-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text3); margin-top: 4px;
+}
+.user-modal-error {
+    display: none; padding: 8px 12px; border-radius: 6px;
+    background: rgba(255,77,106,0.08); border: 1px solid rgba(255,77,106,0.2);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--red); margin-bottom: 16px;
+}
+.user-modal-actions {
+    display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;
+}
+.user-modal-cancel {
+    padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border2);
+    background: transparent; color: var(--text2); cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 12px;
+}
+.user-modal-save {
+    padding: 8px 18px; border-radius: 8px;
+    border: 1px solid rgba(0,212,255,0.3);
+    background: rgba(0,212,255,0.1); color: var(--accent);
+    cursor: pointer; font-family: 'Syne', sans-serif;
+    font-size: 12px; font-weight: 700;
+}
   </style>
 </head>
 <body>
@@ -859,6 +1127,8 @@
       <a href="#section-vps" title="VPS">◈</a>
       <a href="#section-db" title="Banco de Dados">◉</a>
       <a href="javascript:void(0)" onclick="switchTab('execucoes')" data-tab="execucoes" title="Execuções">▶</a>
+      <a href="javascript:void(0)" onclick="switchTab('exportar')" data-tab="exportar" title="Exportar">⬇</a>
+      <a href="javascript:void(0)" onclick="switchTab('usuarios')" data-tab="usuarios" title="Usuários" id="nav-usuarios" style="display:none">👤</a>
     </div>
     <div class="sidebar-status">
       <div class="sidebar-dot"></div>
@@ -874,6 +1144,11 @@
     <div class="topbar-right">
       <span class="badge-connected" id="badge-online"><span class="badge-dot"></span> Conectado</span>
       <span class="badge-disconnected" id="badge-offline" style="display:none"><span class="badge-dot"></span> Desconectado</span>
+      <div id="user-info" style="display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:20px;background:rgba(255,255,255,0.04);border:1px solid var(--border2)">
+      <span id="user-name" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);">—</span>
+      <span id="user-role-badge" style="font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(0,212,255,0.1);color:var(--accent);">—</span>
+      <span onclick="logout()" title="Sair" style="cursor:pointer;color:var(--text3);font-size:12px;transition:color 0.2s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">⏻</span>
+    </div>
       <button class="btn-refresh" onclick="fetchAll()">↻ Atualizar</button>
       <span class="topbar-clock" id="clock">00:00:00</span>
     </div>
@@ -1136,6 +1411,146 @@
       </div>
     </div>
 
+    <div id="tab-exportar" class="tab-content" style="display:none">
+      <div class="content">
+
+        <div class="section-header">
+          <div class="section-title">Exportar Dados</div>
+          <div class="section-line"></div>
+        </div>
+
+        <div class="export-config-panel">
+
+          <div class="export-step-label">1. Selecione a tabela</div>
+          <select class="export-select" id="export-table-select"
+                  onchange="onTableSelect(this.value)">
+            <option value="">Carregando tabelas...</option>
+          </select>
+
+          <div id="export-date-section" style="display:none">
+            <div class="export-step-label">2. Filtro por período (opcional)</div>
+            <select class="export-select" id="export-date-col-select"
+                    style="margin-bottom:8px">
+              <option value="">Sem filtro de período</option>
+            </select>
+            <div class="export-date-row">
+              <div class="export-date-group">
+                <label>De</label>
+                <input type="date" class="export-date-input" id="export-date-from">
+              </div>
+              <div class="export-date-group">
+                <label>Até</label>
+                <input type="date" class="export-date-input" id="export-date-to">
+              </div>
+            </div>
+          </div>
+
+          <div class="export-step-label">3. Preview (5 primeiras linhas)</div>
+          <div id="preview-wrap" class="preview-wrap">
+            <table class="preview-table" id="preview-table">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="preview-note" id="preview-note"></div>
+
+          <button class="export-btn" id="export-download-btn"
+                  onclick="downloadExcel()" disabled>
+            ⬇ Exportar para Excel
+          </button>
+
+          <!-- Seção de progresso -->
+          <div id="export-progress-section" style="display:none; margin-top:16px;">
+            <div id="export-progress-title"
+                 style="font-family:'Syne',sans-serif; font-size:12px;
+                        font-weight:600; color:var(--text); margin-bottom:6px;">
+              Gerando arquivo...
+            </div>
+            <div id="export-total-rows"
+                 style="font-family:'JetBrains Mono',monospace; font-size:10px;
+                        color:var(--text3); margin-bottom:10px;">
+              —
+            </div>
+            <div style="height:6px; border-radius:3px; background:var(--border);
+                        overflow:hidden; margin-bottom:8px;">
+              <div id="export-progress-bar"
+                   style="height:100%; border-radius:3px; width:0%;
+                          background:var(--accent); transition:width 0.4s ease;">
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span id="export-rows-info"
+                    style="font-family:'JetBrains Mono',monospace; font-size:11px;
+                           color:var(--text2);">
+                0 / 0 linhas
+              </span>
+              <div style="display:flex; gap:12px; align-items:center;">
+                <span id="export-job-status"
+                      style="font-family:'JetBrains Mono',monospace; font-size:10px;
+                             color:var(--text3);">
+                  pending
+                </span>
+                <span id="export-progress-pct"
+                      style="font-family:'JetBrains Mono',monospace; font-size:13px;
+                             font-weight:700; color:var(--accent);">
+                  0%
+                </span>
+                <span id="export-elapsed"
+                      style="font-family:'JetBrains Mono',monospace; font-size:10px;
+                             color:var(--text3);">
+                  0s
+                </span>
+              </div>
+            </div>
+            <div id="export-progress-error"
+                 style="display:none; margin-top:10px; padding:8px 12px;
+                        background:rgba(255,77,106,0.08); border:1px solid rgba(255,77,106,0.2);
+                        border-radius:6px; font-family:'JetBrains Mono',monospace;
+                        font-size:11px; color:var(--red);">
+            </div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <div class="section-title">Tabelas Disponíveis</div>
+          <div class="section-line"></div>
+        </div>
+        <div class="tables-export-grid" id="tables-export-grid"></div>
+
+      </div>
+    </div>
+
+<!-- ── Tab: Usuários ──────────────────────────────────────── -->
+<div id="tab-usuarios" class="tab-content" style="display:none">
+  <div class="content">
+    <div class="section-header">
+      <div class="section-title">Gerenciamento de Usuários</div>
+      <div class="section-line"></div>
+      <button class="new-user-btn" onclick="openUserModal()">+ Novo Usuário</button>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">👤 Usuários <span class="card-badge">dw_monitor_users</span></div>
+      </div>
+      <div class="card-body" style="padding:0">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Nome Completo</th>
+              <th>Perfil</th>
+              <th>Status</th>
+              <th>Último Login</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
     <!-- Trigger Modal -->
     <div class="trigger-modal-overlay" id="trigger-modal">
       <div class="trigger-modal">
@@ -1159,6 +1574,79 @@
 
   <script>
     const API_BASE = window.location.origin;
+
+// ── AUTENTICAÇÃO ─────────────────────────────────────────────
+const TOKEN_KEY = 'dw_monitor_token';
+const USER_KEY = 'dw_monitor_user';
+
+function getToken() { return localStorage.getItem(TOKEN_KEY); }
+function getUser() {
+    try { return JSON.parse(localStorage.getItem(USER_KEY)); }
+    catch (e) { return null; }
+}
+
+function logout() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    window.location.href = '/login.html';
+}
+
+async function authFetch(url, options = {}) {
+    const token = getToken();
+    const res = await fetch(url, {
+        ...options,
+        headers: {
+            ...options.headers,
+            'Authorization': token ? 'Bearer ' + token : ''
+        }
+    });
+    if (res.status === 401) { logout(); throw new Error('Sessão expirada'); }
+    return res;
+}
+
+function applyRolePermissions(role) {
+    if (role !== 'admin') {
+        const triggerNav = document.querySelector('[data-tab="execucoes"]');
+        if (triggerNav) triggerNav.style.display = 'none';
+    }
+    if (role === 'viewer') {
+        const exportNav = document.querySelector('[data-tab="exportar"]');
+        if (exportNav) exportNav.style.display = 'none';
+    }
+    if (role === 'admin') {
+        const navUsuarios = document.getElementById('nav-usuarios');
+        if (navUsuarios) navUsuarios.style.display = '';
+    }
+}
+
+function renderUserInfo(user) {
+    const nameEl = document.getElementById('user-name');
+    const roleEl = document.getElementById('user-role-badge');
+    if (nameEl) nameEl.textContent = user.full_name || user.username;
+    if (roleEl) {
+        roleEl.textContent = user.role;
+        const colors = { admin: 'rgba(255,77,106,0.1)', analyst: 'rgba(255,214,102,0.1)', viewer: 'rgba(0,212,255,0.1)' };
+        const textColors = { admin: 'var(--red)', analyst: 'var(--yellow)', viewer: 'var(--accent)' };
+        roleEl.style.background = colors[user.role] || colors.viewer;
+        roleEl.style.color = textColors[user.role] || textColors.viewer;
+    }
+}
+
+(async function initAuth() {
+    const token = getToken();
+    if (!token) { window.location.href = '/login.html'; return; }
+    try {
+        const res = await fetch(API_BASE + '/api/auth/me', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!res.ok) { logout(); return; }
+        const user = await res.json();
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+        applyRolePermissions(user.role);
+        renderUserInfo(user);
+    } catch (e) { logout(); }
+})();
+
     let statusChart = null;
     let registrosChart = null;
 
@@ -1474,11 +1962,11 @@
     async function fetchAll() {
       try {
         const [etlRes, vpsRes, tablesRes, healthRes, alertsRes] = await Promise.all([
-          fetch(`${API_BASE}/api/etls`).then(r => r.json()),
-          fetch(`${API_BASE}/api/vps`).then(r => r.json()),
-          fetch(`${API_BASE}/api/db/tables`).then(r => r.json()),
-          fetch(`${API_BASE}/api/db/health`).then(r => r.json()),
-          fetch(`${API_BASE}/api/alerts`).then(r => r.json()),
+          authFetch(`${API_BASE}/api/etls`).then(r => r.json()),
+          authFetch(`${API_BASE}/api/vps`).then(r => r.json()),
+          authFetch(`${API_BASE}/api/db/tables`).then(r => r.json()),
+          authFetch(`${API_BASE}/api/db/health`).then(r => r.json()),
+          authFetch(`${API_BASE}/api/alerts`).then(r => r.json()),
         ]);
 
         document.getElementById('badge-online').style.display = '';
@@ -1528,6 +2016,8 @@
       else document.querySelector('.sidebar-nav a').classList.add('active');
 
       if (tabName === 'execucoes') loadTriggerTab();
+      if (tabName === 'exportar') loadExportTab();
+      if (tabName === 'usuarios') loadUsersTab();
     }
 
     // Override sidebar links for dashboard tab
@@ -1547,7 +2037,7 @@
 
     async function loadTriggerTab() {
       try {
-        const res = await fetch(API_BASE + '/api/trigger/history');
+        const res = await authFetch(API_BASE + '/api/trigger/history');
         const json = await res.json();
         renderTriggerCards(json.data);
       } catch (e) {
@@ -1604,7 +2094,7 @@
     async function dispararETL(pipelineName) {
       const encoded = encodeURIComponent(pipelineName);
       try {
-        const res = await fetch(API_BASE + '/api/trigger/' + encoded, { method: 'POST' });
+        const res = await authFetch(API_BASE + '/api/trigger/' + encoded, { method: 'POST' });
         const json = await res.json();
         if (!res.ok) {
           alert('Erro ao disparar: ' + (json.detail || 'Erro desconhecido'));
@@ -1654,7 +2144,7 @@
     async function pollStatus(pipelineName) {
       const encoded = encodeURIComponent(pipelineName);
       try {
-        const res = await fetch(API_BASE + '/api/trigger/status/' + encoded);
+        const res = await authFetch(API_BASE + '/api/trigger/status/' + encoded);
         const data = await res.json();
 
         const elapsed = Math.floor((Date.now() - monitorStartTime) / 1000);
@@ -1686,6 +2176,483 @@
 
     fetchAll();
     setInterval(fetchAll, 30000);
+
+    // ── EXPORT TAB ───────────────────────────────────────────
+    let exportTables = [];
+    let selectedTable = null;
+    let selectedTableMeta = null;
+    let activeJobId = null;
+    let progressInterval = null;
+    let jobStartTime = null;
+
+    async function loadExportTab() {
+        try {
+            const res = await authFetch(`${API_BASE}/api/export/tables`);
+            const json = await res.json();
+            exportTables = json.tables;
+            renderExportTableCards(exportTables);
+            populateTableSelect(exportTables);
+        } catch (e) {
+            console.error('Erro ao carregar tabelas:', e);
+        }
+    }
+
+    function populateTableSelect(tables) {
+        const sel = document.getElementById('export-table-select');
+        sel.innerHTML = '<option value="">Selecione uma tabela...</option>';
+        tables.forEach(t => {
+            const rows = t.rows_estimate?.toLocaleString('pt-BR') || '—';
+            sel.innerHTML += `<option value="${t.name}">${t.name} (${rows} linhas)</option>`;
+        });
+    }
+
+    async function onTableSelect(tableName) {
+        if (!tableName) {
+            selectedTable = null;
+            document.getElementById('preview-wrap').style.display = 'none';
+            document.getElementById('export-date-section').style.display = 'none';
+            document.getElementById('export-download-btn').disabled = true;
+            return;
+        }
+
+        selectedTable = tableName;
+        selectedTableMeta = exportTables.find(t => t.name === tableName);
+
+        // Update select to match
+        document.getElementById('export-table-select').value = tableName;
+
+        // Update card selection
+        document.querySelectorAll('.table-export-card').forEach(card => {
+            card.classList.toggle('selected', card.dataset.table === tableName);
+        });
+
+        // Show/hide date filter section
+        const dateSection = document.getElementById('export-date-section');
+        const dateColSelect = document.getElementById('export-date-col-select');
+
+        if (selectedTableMeta?.date_columns?.length > 0) {
+            dateSection.style.display = 'block';
+            dateColSelect.innerHTML = '<option value="">Sem filtro de período</option>';
+            selectedTableMeta.date_columns.forEach(col => {
+                dateColSelect.innerHTML += `<option value="${col}">${col}</option>`;
+            });
+        } else {
+            dateSection.style.display = 'none';
+        }
+
+        await loadPreview(tableName);
+        document.getElementById('export-download-btn').disabled = false;
+    }
+
+    async function loadPreview(tableName) {
+        try {
+            const res = await authFetch(`${API_BASE}/api/export/preview/${tableName}`);
+            const json = await res.json();
+            renderPreview(json.columns, json.preview);
+        } catch (e) {
+            console.error('Erro ao carregar preview:', e);
+        }
+    }
+
+    function renderPreview(columns, rows) {
+        const wrap = document.getElementById('preview-wrap');
+        const table = document.getElementById('preview-table');
+
+        table.querySelector('thead').innerHTML =
+            '<tr>' + columns.map(c => `<th>${c}</th>`).join('') + '</tr>';
+
+        table.querySelector('tbody').innerHTML = rows.map(row =>
+            '<tr>' + columns.map(c => {
+                const val = row[c] ?? '—';
+                return `<td title="${val}">${String(val).substring(0, 40)}</td>`;
+            }).join('') + '</tr>'
+        ).join('');
+
+        wrap.style.display = 'block';
+    }
+
+    async function downloadExcel() {
+        if (!selectedTable) return;
+
+        const btn = document.getElementById('export-download-btn');
+        btn.disabled = true;
+        btn.classList.add('loading');
+        btn.innerHTML = '⟳ Iniciando...';
+
+        try {
+            const dateCol = document.getElementById('export-date-col-select')?.value || '';
+            const dateFrom = document.getElementById('export-date-from')?.value || '';
+            const dateTo = document.getElementById('export-date-to')?.value || '';
+
+            let url = `${API_BASE}/api/export/start/${selectedTable}`;
+            const params = new URLSearchParams();
+            if (dateCol) params.append('date_column', dateCol);
+            if (dateFrom) params.append('date_from', dateFrom);
+            if (dateTo) params.append('date_to', dateTo);
+            if (params.toString()) url += '?' + params.toString();
+
+            const res = await authFetch(url, { method: 'POST' });
+            if (!res.ok) {
+                const err = await res.json();
+                alert(`Erro ao iniciar exportação: ${err.detail || 'Erro desconhecido'}`);
+                resetExportBtn();
+                return;
+            }
+
+            const job = await res.json();
+            activeJobId = job.job_id;
+            jobStartTime = Date.now();
+
+            showProgressSection(job.table_name, job.total_rows);
+            progressInterval = setInterval(() => pollExportProgress(), 2000);
+
+        } catch (e) {
+            alert(`Erro de conexão: ${e.message}`);
+            resetExportBtn();
+        }
+    }
+
+    function renderExportTableCards(tables) {
+        const grid = document.getElementById('tables-export-grid');
+        grid.innerHTML = '';
+        tables.forEach(t => {
+            const rows = t.rows_estimate?.toLocaleString('pt-BR') || '—';
+            grid.innerHTML += `
+                <div class="table-export-card" data-table="${t.name}"
+                     onclick="onTableSelect('${t.name}')">
+                    <div class="table-card-name">${t.name}</div>
+                    <div class="table-card-meta">
+                        <span>◈ ${rows} linhas</span>
+                        <span>◫ ${t.size_pretty}</span>
+                        ${t.date_columns.length > 0
+                            ? `<span style="color:var(--accent)">📅 ${t.date_columns[0]}</span>`
+                            : '<span>Sem coluna de data</span>'
+                        }
+                    </div>
+                </div>`;
+        });
+    }
+    // ── EXPORT PROGRESS FUNCTIONS ────────────────────────────────
+
+    async function pollExportProgress() {
+        if (!activeJobId) return;
+        try {
+            const res = await authFetch(`${API_BASE}/api/export/progress/${activeJobId}`);
+            if (!res.ok) {
+                stopProgressPolling();
+                showProgressError('Job não encontrado ou expirado');
+                return;
+            }
+            const job = await res.json();
+            updateProgressUI(job);
+            if (job.status === 'done') {
+                stopProgressPolling();
+                await triggerDownload(activeJobId, job.filename);
+                resetAfterDownload(job);
+            } else if (job.status === 'error') {
+                stopProgressPolling();
+                showProgressError(job.error || 'Erro desconhecido na geração do arquivo');
+            }
+        } catch (e) {
+            console.error('Erro no polling:', e);
+        }
+    }
+
+    function updateProgressUI(job) {
+        const bar = document.getElementById('export-progress-bar');
+        const pct = document.getElementById('export-progress-pct');
+        const rowsInfo = document.getElementById('export-rows-info');
+        const elapsed = document.getElementById('export-elapsed');
+        const statusEl = document.getElementById('export-job-status');
+
+        const progress = job.progress || 0;
+        const rowsDone = (job.rows_done || 0).toLocaleString('pt-BR');
+        const totalRows = (job.total_rows || 0).toLocaleString('pt-BR');
+        const elapsedS = Math.floor((Date.now() - jobStartTime) / 1000);
+
+        if (bar) bar.style.width = progress + '%';
+        if (pct) pct.textContent = progress + '%';
+        if (rowsInfo) rowsInfo.textContent = `${rowsDone} / ${totalRows} linhas`;
+        if (elapsed) elapsed.textContent = `${elapsedS}s`;
+        if (statusEl) statusEl.textContent = job.status === 'processing' ? 'Gerando...' : job.status;
+    }
+
+    async function triggerDownload(jobId, filename) {
+        const res = await authFetch(`${API_BASE}/api/export/result/${jobId}`);
+        if (!res.ok) {
+            showProgressError('Erro ao baixar o arquivo gerado');
+            return;
+        }
+        const blob = await res.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename || `hinova_dw_export.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+    }
+
+    function stopProgressPolling() {
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
+    }
+
+    function showProgressSection(tableName, totalRows) {
+        const section = document.getElementById('export-progress-section');
+        if (section) section.style.display = 'block';
+        const title = document.getElementById('export-progress-title');
+        if (title) title.textContent = `Exportando ${tableName}...`;
+        const total = document.getElementById('export-total-rows');
+        if (total) total.textContent = (totalRows || 0).toLocaleString('pt-BR') + ' linhas no total';
+        const bar = document.getElementById('export-progress-bar');
+        if (bar) { bar.style.width = '0%'; bar.style.background = 'var(--accent)'; }
+        const errEl = document.getElementById('export-progress-error');
+        if (errEl) errEl.style.display = 'none';
+    }
+
+    function showProgressError(msg) {
+        const errEl = document.getElementById('export-progress-error');
+        if (errEl) { errEl.textContent = '✕ ' + msg; errEl.style.display = 'block'; }
+        const bar = document.getElementById('export-progress-bar');
+        if (bar) bar.style.background = 'var(--red)';
+        resetExportBtn();
+    }
+
+    function resetAfterDownload(job) {
+        const title = document.getElementById('export-progress-title');
+        const bar = document.getElementById('export-progress-bar');
+        if (bar) bar.style.background = 'var(--green)';
+        if (title) title.textContent = '✓ ' + job.table_name + ' exportado com sucesso';
+        setTimeout(() => resetExportBtn(), 3000);
+        activeJobId = null;
+    }
+
+    function resetExportBtn() {
+        const btn = document.getElementById('export-download-btn');
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('loading');
+            btn.innerHTML = '⬇ Exportar para Excel';
+        }
+    }
+// ── User Management ──────────────────────────────────────────
+let editingUserId = null;
+
+async function loadUsersTab() {
+    try {
+        const res = await authFetch(`${API_BASE}/api/auth/users`);
+        if (!res.ok) throw new Error('Falha ao carregar usuários');
+        const json = await res.json();
+        renderUsersTable(json.data);
+    } catch (e) {
+        console.error('Erro ao carregar usuários:', e);
+    }
+}
+
+function renderUsersTable(users) {
+    const tbody = document.getElementById('users-tbody');
+    const currentUser = getUser();
+    tbody.innerHTML = '';
+
+    users.forEach(u => {
+        const isCurrentUser = u.username === currentUser?.username;
+        const lastLogin = u.last_login
+            ? new Date(u.last_login).toLocaleString('pt-BR',
+                { day:'2-digit', month:'2-digit', year:'2-digit',
+                  hour:'2-digit', minute:'2-digit' })
+            : 'Nunca';
+
+        const statusHtml = u.is_active
+            ? '<span class="status-active">● Ativo</span>'
+            : '<span class="status-inactive">○ Inativo</span>';
+
+        const editBtn = `<button class="user-action-btn edit" onclick="openUserModal(${u.id})">✏ Editar</button>`;
+
+        let toggleBtn;
+        if (u.is_active) {
+            toggleBtn = `<button class="user-action-btn deactivate" onclick="confirmDeactivate(${u.id}, '${u.username}')" ${isCurrentUser ? 'disabled title="Não pode desativar sua própria conta"' : ''}>⊘ Desativar</button>`;
+        } else {
+            toggleBtn = `<button class="user-action-btn reactivate" onclick="reactivateUser(${u.id}, '${u.username}')">↺ Reativar</button>`;
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>
+                <div class="user-username">${u.username}</div>
+                ${isCurrentUser ? '<div style="font-size:9px;color:var(--accent);font-family:\'JetBrains Mono\',monospace">você</div>' : ''}
+            </td>
+            <td>${u.full_name || '—'}</td>
+            <td><span class="role-badge ${u.role}">${u.role}</span></td>
+            <td>${statusHtml}</td>
+            <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3)">${lastLogin}</td>
+            <td><div style="display:flex;gap:6px">${editBtn} ${toggleBtn}</div></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+async function openUserModal(userId) {
+    editingUserId = userId || null;
+    const modal = document.getElementById('user-modal');
+    const errEl = document.getElementById('user-modal-error');
+    errEl.style.display = 'none';
+
+    document.getElementById('user-modal-username').value = '';
+    document.getElementById('user-modal-fullname').value = '';
+    document.getElementById('user-modal-password').value = '';
+    document.getElementById('user-modal-role').value = 'viewer';
+
+    const usernameField = document.getElementById('user-modal-username');
+    const usernameHint = document.getElementById('user-modal-username-hint');
+    const passwordHint = document.getElementById('password-hint');
+
+    if (editingUserId) {
+        document.getElementById('user-modal-title').textContent = 'Editar Usuário';
+        usernameField.readOnly = true;
+        usernameField.style.opacity = '0.5';
+        if (usernameHint) usernameHint.textContent = 'Username não pode ser alterado';
+        if (passwordHint) passwordHint.style.display = '';
+
+        try {
+            const res = await authFetch(`${API_BASE}/api/auth/users`);
+            const json = await res.json();
+            const user = json.data.find(u => u.id === userId);
+            if (user) {
+                usernameField.value = user.username;
+                document.getElementById('user-modal-fullname').value = user.full_name || '';
+                document.getElementById('user-modal-role').value = user.role;
+            }
+        } catch (e) { console.error(e); }
+    } else {
+        document.getElementById('user-modal-title').textContent = 'Novo Usuário';
+        usernameField.readOnly = false;
+        usernameField.style.opacity = '1';
+        if (usernameHint) usernameHint.textContent = '3-50 chars: letras, números, ponto ou underscore';
+        if (passwordHint) passwordHint.style.display = 'none';
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closeUserModal() {
+    document.getElementById('user-modal').style.display = 'none';
+    editingUserId = null;
+}
+
+async function saveUser() {
+    const errEl = document.getElementById('user-modal-error');
+    const saveBtn = document.getElementById('user-modal-save-btn');
+    const username = document.getElementById('user-modal-username').value.trim();
+    const fullname = document.getElementById('user-modal-fullname').value.trim();
+    const password = document.getElementById('user-modal-password').value;
+    const role = document.getElementById('user-modal-role').value;
+
+    errEl.style.display = 'none';
+    saveBtn.disabled = true;
+    saveBtn.textContent = '⟳ Salvando...';
+
+    try {
+        let res;
+        if (editingUserId) {
+            const body = { full_name: fullname, role };
+            if (password) body.password = password;
+            res = await authFetch(`${API_BASE}/api/auth/users/${editingUserId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+        } else {
+            if (!username) { showUserModalError('Username é obrigatório'); return; }
+            if (!password) { showUserModalError('Senha é obrigatória para novo usuário'); return; }
+            res = await authFetch(`${API_BASE}/api/auth/users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, full_name: fullname, role })
+            });
+        }
+
+        const data = await res.json();
+        if (!res.ok) {
+            showUserModalError(data.detail || 'Erro ao salvar usuário');
+            return;
+        }
+
+        closeUserModal();
+        await loadUsersTab();
+    } catch (e) {
+        showUserModalError('Erro de conexão: ' + e.message);
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Salvar';
+    }
+}
+
+function showUserModalError(msg) {
+    const errEl = document.getElementById('user-modal-error');
+    errEl.textContent = '✕ ' + msg;
+    errEl.style.display = 'block';
+    document.getElementById('user-modal-save-btn').disabled = false;
+    document.getElementById('user-modal-save-btn').textContent = 'Salvar';
+}
+
+function confirmDeactivate(userId, username) {
+    if (!confirm('Desativar o usuário "' + username + '"?\n\nEle não conseguirá mais fazer login.')) return;
+    deactivateUser(userId);
+}
+
+async function deactivateUser(userId) {
+    try {
+        const res = await authFetch(`${API_BASE}/api/auth/users/${userId}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (!res.ok) { alert('Erro: ' + (data.detail || 'Falha ao desativar usuário')); return; }
+        await loadUsersTab();
+    } catch (e) { alert('Erro de conexão: ' + e.message); }
+}
+
+async function reactivateUser(userId, username) {
+    if (!confirm('Reativar o usuário "' + username + '"?')) return;
+    try {
+        const res = await authFetch(`${API_BASE}/api/auth/users/${userId}/reactivate`, { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) { alert('Erro: ' + (data.detail || 'Falha ao reativar usuário')); return; }
+        await loadUsersTab();
+    } catch (e) { alert('Erro de conexão: ' + e.message); }
+}
   </script>
+<!-- Modal Criar/Editar Usuário -->
+<div id="user-modal" class="user-modal-overlay">
+  <div class="user-modal-card">
+    <div class="user-modal-title" id="user-modal-title">Novo Usuário</div>
+    <div class="user-modal-error" id="user-modal-error"></div>
+    <div class="user-modal-field">
+      <label class="user-modal-label">Username</label>
+      <input class="user-modal-input" id="user-modal-username" placeholder="ex: ana.silva" autocomplete="off">
+      <div class="user-modal-hint" id="user-modal-username-hint">3-50 chars: letras, números, ponto ou underscore</div>
+    </div>
+    <div class="user-modal-field">
+      <label class="user-modal-label">Nome Completo</label>
+      <input class="user-modal-input" id="user-modal-fullname" placeholder="ex: Ana Silva" autocomplete="off">
+    </div>
+    <div class="user-modal-field">
+      <label class="user-modal-label">Senha <span id="password-hint" style="font-weight:400;color:var(--text3)">(deixe em branco para não alterar)</span></label>
+      <input class="user-modal-input" type="password" id="user-modal-password" placeholder="mínimo 6 caracteres" autocomplete="new-password">
+    </div>
+    <div class="user-modal-field">
+      <label class="user-modal-label">Perfil de Acesso</label>
+      <select class="user-modal-select" id="user-modal-role">
+        <option value="viewer">viewer — somente dashboard</option>
+        <option value="analyst">analyst — leitura + exportação</option>
+        <option value="admin">admin — acesso total</option>
+      </select>
+    </div>
+    <div class="user-modal-actions">
+      <button class="user-modal-cancel" onclick="closeUserModal()">Cancelar</button>
+      <button class="user-modal-save" id="user-modal-save-btn" onclick="saveUser()">Salvar</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

@@ -1,7 +1,8 @@
 from datetime import datetime
 
 import psutil
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from routers.auth import require_viewer
 
 from database import execute_query
 
@@ -9,7 +10,7 @@ router = APIRouter(prefix="/alerts", tags=["Alerts"])
 
 
 @router.get("")
-def list_alerts():
+def list_alerts(token_data: dict = Depends(require_viewer)):
     alerts = []
     now_iso = datetime.utcnow().isoformat()
 

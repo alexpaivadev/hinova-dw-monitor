@@ -1,7 +1,8 @@
 import time
 
 import psutil
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from routers.auth import require_viewer
 
 psutil.PROCFS_PATH = "/host/proc"
 
@@ -17,7 +18,7 @@ router = APIRouter(prefix="/vps", tags=["System"])
 
 
 @router.get("")
-def get_vps_stats():
+def get_vps_stats(token_data: dict = Depends(require_viewer)):
     try:
         cpu_percent = psutil.cpu_percent(interval=1)
 

@@ -3,7 +3,8 @@ import urllib.parse
 from datetime import datetime
 
 import docker
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from routers.auth import require_admin
 
 from database import execute_query
 
@@ -76,7 +77,7 @@ def _get_service_replicas(service_name: str):
 
 
 @router.post("/{pipeline_name}")
-def trigger_pipeline(pipeline_name: str):
+def trigger_pipeline(pipeline_name: str, token_data: dict = Depends(require_admin)):
     name = urllib.parse.unquote(pipeline_name)
 
     if name not in PIPELINE_CONFIG:
@@ -115,7 +116,7 @@ def trigger_pipeline(pipeline_name: str):
 
 
 @router.get("/status/{pipeline_name}")
-def trigger_status(pipeline_name: str):
+def trigger_status(pipeline_name: str, token_data: dict = Depends(require_admin)):
     name = urllib.parse.unquote(pipeline_name)
 
     rows = execute_query(
@@ -150,7 +151,7 @@ def trigger_status(pipeline_name: str):
 
 
 @router.get("/history")
-def trigger_history():
+def trigger_history(token_data: dict = Depends(require_admin)):
     rows = execute_query(
         "SELECT workflow, status, ultima_execucao, registros_ok, mensagem "
         "FROM ingest_control ORDER BY ultima_execucao DESC NULLS LAST"
