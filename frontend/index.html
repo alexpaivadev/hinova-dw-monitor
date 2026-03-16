@@ -1216,6 +1216,7 @@
                 <th>Pipeline</th>
                 <th>Status</th>
                 <th>Última Execução</th>
+                <th>Próxima Exec</th>
                 <th>Registros</th>
                 <th>Mensagem</th>
               </tr>
@@ -1575,6 +1576,115 @@
   <script>
     const API_BASE = window.location.origin;
 
+// ── SCHEDULE COUNTDOWN ──────────────────────────────────────
+const PIPELINE_SCHEDULES = {
+    "ETL Alteracao Situacao Veiculo":     { hour: 2,  minute: 0,  type: "daily", label: "02:00" },
+    "ETL Alteracao Situacao Veiculo API": { hour: 2,  minute: 0,  type: "daily", label: "02:00" },
+    "ETL Veiculos Python":                { hour: 2,  minute: 0,  type: "daily", label: "02:00" },
+    "ETL Boletos Janela":   { hour: 2,  minute: 15, type: "daily", label: "02:15" },
+    "ETL Boletos Mês Atual":{ hour: 2,  minute: 15, type: "daily", label: "02:15" },
+    "ETL Boletos Python":   { hour: 2,  minute: 15, type: "daily", label: "02:15" },
+    "ETL PowerCRM Cotacoes": { type: "interval", intervalMinutes: 30, startHour: 7, endHour: 22, label: "a cada 30min" },
+};
+
+const MULTI_WINDOW_PIPELINES = {
+    "ETL Rel Veiculos Ativos":    [{ hour: 8, minute: 0 }, { hour: 12, minute: 0 }, { hour: 14, minute: 0 }],
+    "ETL Rel Alteracao Situacao": [{ hour: 8, minute: 0 }, { hour: 12, minute: 0 }, { hour: 14, minute: 0 }],
+};
+
+function getFortalezaNow() {
+    const now = new Date();
+    const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+    return new Date(utcMs - 3 * 3600000);
+}
+
+function getNextExecution(pipelineName) {
+    const now = getFortalezaNow();
+    if (MULTI_WINDOW_PIPELINES[pipelineName]) return getNextMultiWindow(pipelineName, now);
+    const schedule = PIPELINE_SCHEDULES[pipelineName];
+    if (!schedule) return null;
+    if (schedule.type === 'daily') return getNextDaily(schedule, now);
+    if (schedule.type === 'interval') return getNextInterval(schedule, now);
+    return null;
+}
+
+function getNextDaily(schedule, now) {
+    const next = new Date(now);
+    next.setHours(schedule.hour, schedule.minute, 0, 0);
+    if (next <= now) next.setDate(next.getDate() + 1);
+    return { nextDate: next, label: schedule.label, countdown: formatCountdown(next - now) };
+}
+
+function getNextInterval(schedule, now) {
+    const { intervalMinutes, startHour, endHour } = schedule;
+    const h = now.getHours(), m = now.getMinutes();
+    if (h >= startHour && (h < endHour || (h === endHour && m === 0))) {
+        const minutesToNext = intervalMinutes - (m % intervalMinutes);
+        const next = new Date(now.getTime() + minutesToNext * 60000);
+        next.setSeconds(0, 0);
+        if (next.getHours() < endHour || (next.getHours() === endHour && next.getMinutes() === 0)) {
+            return { nextDate: next, label: schedule.label, countdown: formatCountdown(next - now) };
+        }
+    }
+    const next = new Date(now);
+    if (h < startHour) {
+        next.setHours(startHour, 0, 0, 0);
+    } else {
+        next.setDate(next.getDate() + 1);
+        next.setHours(startHour, 0, 0, 0);
+    }
+    return { nextDate: next, label: schedule.label, countdown: formatCountdown(next - now) };
+}
+
+function getNextMultiWindow(pipelineName, now) {
+    const windows = MULTI_WINDOW_PIPELINES[pipelineName];
+    let nearest = null;
+    for (const w of windows) {
+        const c = new Date(now);
+        c.setHours(w.hour, w.minute, 0, 0);
+        if (c <= now) c.setDate(c.getDate() + 1);
+        if (!nearest || c < nearest) nearest = c;
+    }
+    if (!nearest) return null;
+    const label = String(nearest.getHours()).padStart(2,'0') + ':' + String(nearest.getMinutes()).padStart(2,'0');
+    return { nextDate: nearest, label, countdown: formatCountdown(nearest - now) };
+}
+
+function formatCountdown(ms) {
+    if (ms <= 0) return 'agora';
+    const s = Math.floor(ms / 1000);
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    if (h > 0) return h + 'h ' + String(m).padStart(2,'0') + 'm';
+    if (m > 0) return m + 'm ' + String(sec).padStart(2,'0') + 's';
+    return sec + 's';
+}
+
+function getCountdownColor(ms) {
+    const min = ms / 60000;
+    if (min < 5)  return 'var(--green)';
+    if (min < 30) return 'var(--yellow)';
+    return 'var(--text3)';
+}
+
+function startCountdownUpdater() {
+    if (window._countdownInterval) clearInterval(window._countdownInterval);
+    window._countdownInterval = setInterval(() => {
+        if (document.getElementById('tab-dashboard')?.style.display === 'none') return;
+        const allNames = [...new Set([...Object.keys(PIPELINE_SCHEDULES), ...Object.keys(MULTI_WINDOW_PIPELINES)])];
+        allNames.forEach(name => {
+            const safeId = name.replace(/[^a-zA-Z0-9]/g, '_');
+            const el = document.getElementById('countdown-' + safeId);
+            if (!el) return;
+            const nx = getNextExecution(name);
+            if (!nx) return;
+            const ms = nx.nextDate - getFortalezaNow();
+            el.textContent = formatCountdown(ms);
+            el.style.color = getCountdownColor(ms);
+            el.style.animation = ms < 300000 ? 'pulse-dot 1s infinite' : 'none';
+        });
+    }, 1000);
+}
+
 // ── AUTENTICAÇÃO ─────────────────────────────────────────────
 const TOKEN_KEY = 'dw_monitor_token';
 const USER_KEY = 'dw_monitor_user';
@@ -1726,16 +1836,22 @@ function renderUserInfo(user) {
     function updateETLTable(data) {
       const tbody = document.getElementById('etl-tbody');
       if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:20px">Nenhum pipeline encontrado</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">Nenhum pipeline encontrado</td></tr>';
         return;
       }
       tbody.innerHTML = data.map(row => {
         const status = row.status || 'pending';
         const tagClass = status === 'success' ? 'success' : status === 'error' ? 'error' : status === 'running' ? 'running' : status === 'skipped' ? 'skipped' : status === 'warn' ? 'warn' : 'pending';
+        const safeId = (row.pipeline_name || '').replace(/[^a-zA-Z0-9]/g, '_');
+        const nx = getNextExecution(row.pipeline_name);
+        const nxHtml = nx
+          ? `<td><div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2)">${nx.label}</div><div id="countdown-${safeId}" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${getCountdownColor(nx.nextDate - getFortalezaNow())};margin-top:2px">${nx.countdown}</div></td>`
+          : `<td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)">\u2014</td>`;
         return `<tr>
           <td class="col-pipeline">${row.pipeline_name || '\u2014'}</td>
           <td><span class="tag ${tagClass}">${status}</span></td>
           <td class="col-time">${fmtDate(row.last_run)}</td>
+          ${nxHtml}
           <td class="col-rows">${fmtNumber(row.rows_loaded)}</td>
           <td class="col-msg" title="${row.error_message || ''}">${truncateMsg(row.error_message)}</td>
         </tr>`;
@@ -1974,6 +2090,7 @@ function renderUserInfo(user) {
 
         updateKPIs(etlRes.summary, vpsRes);
         updateETLTable(etlRes.data);
+        startCountdownUpdater();
         updateAlerts(alertsRes.alerts, alertsRes.total);
         updateStatusChart(etlRes.summary);
         updateRegistrosChart(etlRes.data);
